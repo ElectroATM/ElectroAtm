@@ -1,0 +1,9 @@
+| ESP32  | → | L298N | Fonction          |
+| ------ | - | ----- | ----------------- |
+| GPIO25 | → | ENA   | PWM Moteur Gauche |
+| GPIO26 | → | IN1   | Direction M1      |
+| GPIO27 | → | IN2   | Direction M1      |
+| GPIO33 | → | ENB   | PWM Moteur Droit  |
+| GPIO14 | → | IN3   | Direction M2      |
+| GPIO32 | → | IN4   | Direction M2      |
+| GND    | → | GND   | Masse commune     |
