@@ -1,0 +1,20 @@
+//ELECTRO ATM
+
+#include <Servo.h>
+
+Servo myServo;
+
+int potPin = A0;   // potentiomètre
+int servoPin = 9;  // servo moteur
+
+void setup() {
+  myServo.attach(servoPin);
+}
+
+void loop() {
+  int potValue = analogRead(potPin);        // lire le potentiomètre
+  int angle = map(potValue, 0, 1023, 0, 180); // convertir en angle
+
+  myServo.write(angle);   // déplacer le servo
+  delay(15);              // stabilité
+}
