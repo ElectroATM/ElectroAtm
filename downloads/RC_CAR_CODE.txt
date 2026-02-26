@@ -1,0 +1,95 @@
+#include "BluetoothSerial.h"
+
+BluetoothSerial SerialBT;
+
+// ===== PINS L298N =====
+#define IN1 26
+#define IN2 27
+#define IN3 14
+#define IN4 32      // PAS GPIO12
+#define ENA 25
+#define ENB 33
+
+int speedValue = 180; // 0-255
+
+void setup() {
+  // Direction moteurs
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  // PWM (ESP32 core 3.x)
+  ledcAttach(ENA, 1000, 8);
+  ledcAttach(ENB, 1000, 8);
+
+  stopCar();
+
+  Serial.begin(115200);
+  delay(1000);
+
+  SerialBT.begin("ESP32_RC_CAR");
+  Serial.println("ESP32 + L298N OK (PWM core 3.x)");
+}
+
+void loop() {
+  if (SerialBT.available()) {
+    char cmd = SerialBT.read();
+    Serial.println(cmd);
+
+    switch (cmd) {
+      case 'F': forward();  break;
+      case 'B': backward(); break;
+      case 'L': left();     break;
+      case 'R': right();    break;
+      case 'S': stopCar();  break;
+    }
+  }
+}
+
+// ===== FONCTIONS =====
+
+void forward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  ledcWrite(ENA, speedValue);
+  ledcWrite(ENB, speedValue);
+}
+
+void backward() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  ledcWrite(ENA, speedValue);
+  ledcWrite(ENB, speedValue);
+}
+
+void left() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  ledcWrite(ENA, speedValue);
+  ledcWrite(ENB, speedValue);
+}
+
+void right() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  ledcWrite(ENA, speedValue);
+  ledcWrite(ENB, speedValue);
+}
+
+void stopCar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  ledcWrite(ENA, 0);
+  ledcWrite(ENB, 0);
+}
