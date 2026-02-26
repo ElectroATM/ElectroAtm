@@ -1,0 +1,93 @@
+#include <Servo.h>
+#include <LiquidCrystal.h>
+
+// LCD : RS, EN, D4, D5, D6, D7
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+Servo myServo;
+
+// Capteur HC-SR04
+const int trigPin = 8;
+const int echoPin = 7;
+
+// LEDs et buzzer
+const int ledGreen = 6;
+const int ledRed = 9;
+const int buzzer = 10;
+
+// Servo
+const int servoPin = 13;
+
+int limite = 20; // seuil distance cm
+
+long getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duree = pulseIn(echoPin, HIGH, 30000); // timeout 30ms
+  if(duree == 0) return 999; // aucun signal reçu
+  long distance = duree * 0.034 / 2;
+  return distance;
+}
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(ledGreen, OUTPUT);
+  pinMode(ledRed, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  myServo.attach(servoPin);
+  myServo.write(0); // position initiale
+
+  lcd.begin(16, 2);
+  lcd.print("Radar Init...");
+  delay(1500);
+  lcd.clear();
+}
+
+void loop() {
+  long distance = getDistance();
+
+  // Objet détecté
+  if(distance <= limite) {
+    digitalWrite(ledGreen, LOW);
+    digitalWrite(ledRed, HIGH);
+    digitalWrite(buzzer, HIGH);
+
+    lcd.setCursor(0, 0);
+    lcd.print("Dist: ");
+    lcd.print(distance);
+    lcd.print(" cm   ");
+    lcd.setCursor(0, 1);
+    lcd.print("Objet detecte! ");
+
+    // Servo garde sa position
+    myServo.write(myServo.read());
+  }
+  else {
+    // Pas d'objet
+    digitalWrite(ledGreen, HIGH);
+    digitalWrite(ledRed, LOW);
+    digitalWrite(buzzer, LOW);
+
+    lcd.setCursor(0, 1);
+    lcd.print("Scanning...     ");
+    lcd.setCursor(0, 0);
+    lcd.print("ELECTRO ATM  ");
+
+    // Balayage servo 0°→180°→0° doucement
+    static int pos = 0;
+    static int dir = 1; // 1 = vers 180°, -1 = vers 0°
+    myServo.write(pos);
+    pos += dir;
+    if(pos >= 180) dir = -1;
+    else if(pos <= 0) dir = 1;
+
+    delay(20);
+  }
+}
