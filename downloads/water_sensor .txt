@@ -1,0 +1,77 @@
+// ELECTRO ATM 
+// WATER SENSOR PROJECT
+
+#include <LiquidCrystal.h>
+
+// LCD pins: RS, EN, D4, D5, D6, D7
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// Water level sensor
+#define WATER_SENSOR A0
+
+// LEDs + Buzzer
+const int ledLow    = 6;   // LOW level
+const int ledMedium = 7;   // MEDIUM level
+const int ledHigh   = 9;   // HIGH level
+const int buzzer    = 10;
+
+// Realistic sensor limits (common water level sensor)
+const int SENSOR_MIN = 100; // dry
+const int SENSOR_MAX = 650; // almost full
+
+void setup() {
+  pinMode(ledLow, OUTPUT);
+  pinMode(ledMedium, OUTPUT);
+  pinMode(ledHigh, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  lcd.begin(16, 2);
+  lcd.print("ELECTRO ATM");
+  delay(3000);
+  lcd.clear();
+}
+
+void loop() {
+  int waterValue = analogRead(WATER_SENSOR);
+
+  // Convert sensor value to percentage
+  int waterPercent = map(waterValue, SENSOR_MIN, SENSOR_MAX, 0, 100);
+  waterPercent = constrain(waterPercent, 0, 100);
+
+  // Reset outputs
+  digitalWrite(ledLow, LOW);
+  digitalWrite(ledMedium, LOW);
+  digitalWrite(ledHigh, LOW);
+  digitalWrite(buzzer, LOW);
+
+  // LCD line 1
+  lcd.setCursor(0, 0);
+  lcd.print("Water Level: ");
+  lcd.print(waterPercent);
+  lcd.print("%   ");
+
+  // LCD line 2 + logic
+  lcd.setCursor(0, 1);
+
+  if (waterPercent < 30) {
+    lcd.print("Status: LOW     ");
+    digitalWrite(ledLow, HIGH);
+  }
+  else if (waterPercent < 70) {
+    lcd.print("Status: MEDIUM  ");
+    digitalWrite(ledMedium, HIGH);
+  }
+  else {
+    lcd.print("Status: HIGH    ");
+    digitalWrite(ledHigh, HIGH);
+
+    // Buzzer at 90% and above
+    if (waterPercent >= 90) {
+      digitalWrite(buzzer, HIGH);
+      lcd.setCursor(13, 1);
+      lcd.print("!");
+    }
+  }
+
+  delay(500); // real-time update
+}
